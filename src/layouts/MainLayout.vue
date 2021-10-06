@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+    <q-header elevated class="bg-teal-9">
       <q-toolbar>
         <q-btn
           flat
@@ -12,23 +12,24 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          INVENTARIO 3000
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <div>Beta v0.1</div>
       </q-toolbar>
     </q-header>
 
     <q-drawer
       v-model="leftDrawerOpen"
-      show-if-above
       bordered
+      :persistent="false"
+      :show-if-above="false"
     >
       <q-list>
         <q-item-label
           header
         >
-          Essential Links
+         Menú
         </q-item-label>
 
         <EssentialLink
@@ -50,46 +51,16 @@ import EssentialLink from 'components/EssentialLink.vue'
 
 const linksList = [
   {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
+    title: 'Inventario',
+    caption: 'Lista de inventario',
+    icon: 'checklist_rtl',
+    link: '/inventario'
   },
   {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
+    title: 'Cerrar Sessión',
+    caption: '',
+    icon: 'logout',
+    link: '/cerrar_session'
   }
 ]
 
