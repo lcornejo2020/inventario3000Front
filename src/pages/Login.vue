@@ -12,18 +12,22 @@
       </q-card-section>
       <q-card-section>
       <q-input
-        v-model="email"
+        v-model="data.identifier"
+        :disable="loading"
         label="Correo Electrónico *"
         lazy-rules
-        :rules="[ val => val && val.length > 0 || 'Ingrese un correo electrónico']">
+        :rules="[
+          val => val && val.length > 0 || 'Ingrese un correo electrónico',
+          val => isValidEmail(val)
+        ]">
         <template v-slot:prepend>
           <q-icon name="alternate_email" />
         </template>
       </q-input>
-
       <q-input
         type="password"
-        v-model="password"
+        :disable="loading"
+        v-model="data.password"
         label="Contraseña *"
         lazy-rules
         :rules="[ val => val !== null && val !== '' || 'Ingrese una contraseña']">
@@ -31,44 +35,69 @@
           <q-icon name="key" />
         </template>
       </q-input>
-
-      <div>
-        <q-btn label="Iniciar Sesión" type="submit" color="teal-9"/>
-        <q-btn label="Cancelar" type="reset" color="teal-5" flat class="q-ml-sm" />
+      <div class="q-pt-md">
+        <q-btn :loading="loading" label="Iniciar Sesión" type="submit" color="teal-9"/>
+        <q-btn :disable="loading" label="Cancelar" type="reset" color="teal-5" flat class="q-ml-sm" />
       </div>
       </q-card-section>
     </q-card>
     </q-form>
-
   </div>
   </div>
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, reactive } from 'vue'
 import { useQuasar } from 'quasar'
+import { api } from '../boot/axios'
 
 export default defineComponent({
   name: 'Login',
   setup () {
     const $q = useQuasar()
-    const email = ref(null)
-    const password = ref(null)
+    const data = reactive({
+      identifier: null,
+      password: null
+    })
+    const loading = ref(false)
     return {
-      email,
-      password,
-      onSubmit () {
-        $q.notify({
-          color: 'red-5',
-          textColor: 'white',
-          icon: 'warning',
-          message: 'You need to accept the license and terms first'
-        })
+      loading,
+      data,
+      async onSubmit () {
+        loading.value = true
+        try {
+          const res = await api.post('auth/local', data)
+          $q.localStorage.set('user', res.data)
+          loading.value = false
+        } catch (error) {
+          loading.value = false
+          if (error.response) {
+            if (error.response.status === 400) {
+              $q.notify({
+                type: 'warning',
+                icon: 'warning',
+                message: 'Atención !',
+                caption: 'Correo Electrónico o Contraseña no válida'
+              })
+            }
+          } else {
+            $q.notify({
+              type: 'negative',
+              icon: 'close',
+              message: 'Error !',
+              caption: ':( Oops, ocurrio un problema, notifiquelo'
+            })
+          }
+          console.log(error)
+        }
       },
-
       onReset () {
-        email.value = null
-        password.value = null
+        data.identifier = null
+        data.password = null
+      },
+      isValidEmail (email) {
+        const emailPattern = /^(?=[a-zA-Z0-9@._%+-]{6,254}$)[a-zA-Z0-9._%+-]{1,64}@(?:[a-zA-Z0-9-]{1,63}\.){1,8}[a-zA-Z]{2,63}$/
+        return emailPattern.test(email) || 'Correo Electrónico no válido'
       }
     }
   }

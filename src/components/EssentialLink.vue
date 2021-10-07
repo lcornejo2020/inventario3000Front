@@ -3,6 +3,7 @@
     clickable
     tag="a"
     :to="link"
+    active-class="bg-teal-2 text-teal-9"
   >
     <q-item-section
       v-if="icon"
@@ -38,7 +39,7 @@ export default defineComponent({
 
     link: {
       type: String,
-      default: '#'
+      default: ''
     },
 
     icon: {

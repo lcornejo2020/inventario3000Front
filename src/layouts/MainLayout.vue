@@ -15,7 +15,7 @@
           INVENTARIO 3000
         </q-toolbar-title>
 
-        <div>Beta v0.1</div>
+        <div>Beta v{{version}}</div>
       </q-toolbar>
     </q-header>
 
@@ -77,6 +77,7 @@ export default defineComponent({
     const leftDrawerOpen = ref(false)
 
     return {
+      version: process.env.VERSION,
       essentialLinks: linksList,
       leftDrawerOpen,
       toggleLeftDrawer () {
