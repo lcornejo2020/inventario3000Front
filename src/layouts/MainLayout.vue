@@ -29,7 +29,7 @@
         <q-item-label
           header
         >
-         Menú
+         Usuario: {{user ? user.username :  'Incognito'}}
         </q-item-label>
 
         <EssentialLink
@@ -51,6 +51,12 @@ import EssentialLink from 'components/EssentialLink.vue'
 
 const linksList = [
   {
+    title: 'Inicio',
+    caption: '',
+    icon: 'home',
+    link: '/home'
+  },
+  {
     title: 'Inventario',
     caption: 'Lista de inventario',
     icon: 'checklist_rtl',
@@ -60,11 +66,14 @@ const linksList = [
     title: 'Cerrar Sessión',
     caption: '',
     icon: 'logout',
-    link: '/cerrar_session'
+    link: '/logout'
   }
 ]
 
 import { defineComponent, ref } from 'vue'
+import { LocalStorage } from 'quasar'
+import { useRouter } from 'vue-router'
+import { api } from '../boot/axios'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -75,15 +84,31 @@ export default defineComponent({
 
   setup () {
     const leftDrawerOpen = ref(false)
-
+    const user = ref(null)
+    const route = useRouter()
     return {
+      route,
+      user,
       version: process.env.VERSION,
       essentialLinks: linksList,
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
+      },
+      validLogin () {
+        user.value = LocalStorage.getItem('user')
+        if (user.value) {
+          const token = LocalStorage.getItem('token')
+          api.defaults.headers.common.Authorization = `Bearer ${token}`
+        } else {
+          delete api.defaults.headers.common.Authorization
+          route.push('/login')
+        }
       }
     }
+  },
+  created () {
+    this.validLogin()
   }
 })
 </script>

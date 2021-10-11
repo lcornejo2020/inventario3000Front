@@ -48,12 +48,14 @@
 
 <script>
 import { defineComponent, ref, reactive } from 'vue'
-import { useQuasar } from 'quasar'
+import { useQuasar, LocalStorage } from 'quasar'
 import { api } from '../boot/axios'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'Login',
   setup () {
+    const route = useRouter()
     const $q = useQuasar()
     const data = reactive({
       identifier: null,
@@ -61,14 +63,19 @@ export default defineComponent({
     })
     const loading = ref(false)
     return {
+      route,
       loading,
       data,
       async onSubmit () {
+        LocalStorage.clear()
+        delete api.defaults.headers.common.Authorization
         loading.value = true
         try {
           const res = await api.post('auth/local', data)
-          $q.localStorage.set('user', res.data)
+          LocalStorage.set('token', res.data.jwt)
+          LocalStorage.set('user', res.data.user)
           loading.value = false
+          route.push('/home')
         } catch (error) {
           loading.value = false
           if (error.response) {
@@ -100,6 +107,9 @@ export default defineComponent({
         return emailPattern.test(email) || 'Correo Electrónico no válido'
       }
     }
+  },
+  mounted () {
+    if (LocalStorage.getItem('user')) this.route.push('/')
   }
 })
 </script>

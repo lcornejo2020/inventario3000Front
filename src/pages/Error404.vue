@@ -1,21 +1,22 @@
 <template>
-  <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
+  <div class="fullscreen bg-teal-9 text-white text-center q-pa-md flex flex-center">
     <div>
       <div style="font-size: 30vh">
         404
       </div>
 
       <div class="text-h2" style="opacity:.4">
-        Oops. Nothing here...
+        :'(  Oops... Página no encontrada
       </div>
 
       <q-btn
         class="q-mt-xl"
         color="white"
-        text-color="blue"
+        text-color="teal-9"
         unelevated
-        to="/"
-        label="Go Home"
+        to="/home"
+        icon="home"
+        label="Inicio"
         no-caps
       />
     </div>

@@ -1,15 +1,19 @@
 
 const routes = [
+  { path: '/', redirect: '/home' },
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/Index.vue') },
+      { path: 'home', component: () => import('pages/Index.vue') },
       { path: 'inventario', component: () => import('pages/Inventario.vue') }
     ]
   },
   {
     path: '/login', component: () => import('pages/Login.vue')
+  },
+  {
+    path: '/logout', component: () => import('pages/Logout.vue')
   },
   {
     path: '/:catchAll(.*)*',
