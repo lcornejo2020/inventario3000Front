@@ -1,26 +1,32 @@
 # Inventario 3000 (inventario3000front)
 
-inventario
+Inventario
 
-## Install the dependencies
+### Crear variable de ambiente development
+```bash
+ Hacer una copia del archivo de .env.development.example en .env.development
+```
+
+### Crear variable de ambiente production
+```bash
+ Crear el archivo .env.production
+```
+## Instalar dependencias
 ```bash
 npm install
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+### Iniciar el proyecto en modo de desarrollo
 ```bash
 quasar dev
 ```
 
-### Lint the files
+### Hacer Lint en los archivos
 ```bash
 npm run lint
 ```
 
-### Build the app for production
+### Compilar a producción la aplicación
 ```bash
 quasar build
 ```
-
-### Customize the configuration
-See [Configuring quasar.conf.js](https://v2.quasar.dev/quasar-cli/quasar-conf-js).
