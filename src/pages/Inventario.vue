@@ -31,17 +31,23 @@
                 />
             </q-popup-edit>
           </q-td>
+          <q-td key="categoria" :props="props">
+            {{ cargarNombre('categorias',props.row.producto.genero) }}
+          </q-td>
+           <q-td key="material" :props="props">
+            {{ cargarNombre('materiales',props.row.producto.material) }}
+          </q-td>
+          <q-td key="genero" :props="props">
+            {{ cargarNombre('generos',props.row.producto.genero) }}
+          </q-td>
+          <q-td key="descripcion" :props="props">
+            {{ props.row.producto.descripcion }}
+          </q-td>
           <q-td key="precio_compra" :props="props">
-            $.{{ props.row.precio_compra }}
-            <q-popup-edit v-model="props.row.precio_compra">
-              <q-input v-model="props.row.precio_compra" dense autofocus counter />
-            </q-popup-edit>
+            $ {{ props.row.producto.precio_compra }}
           </q-td>
           <q-td key="precio_venta" :props="props">
-            $.{{ props.row.precio_venta }}
-            <q-popup-edit v-model="props.row.precio_venta">
-              <q-input v-model="props.row.precio_venta" dense autofocus counter />
-            </q-popup-edit>
+            $ {{ props.row.producto.precio_venta }}
           </q-td>
           <q-td key="color" :props="props">
             {{ props.row.color.nombre }}
@@ -85,13 +91,17 @@ const columns = [
     name: 'nombre',
     required: true,
     label: 'Producto',
-    align: 'left',
+    align: 'center',
     field: row => row.producto.nombre,
     format: val => `${val}`,
     sortable: true
   },
-  { name: 'precio_compra', align: 'center', label: 'Precio Compra', field: 'precio_compra', sortable: true },
-  { name: 'precio_venta', align: 'center', label: 'Precio Venta', field: 'precio_venta', sortable: true },
+  { name: 'categoria', align: 'center', label: 'Categoria', field: row => row.producto.categoria, format: val => `${val}`, sortable: true },
+  { name: 'material', align: 'center', label: 'Material', field: row => row.producto.categoria, format: val => `${val}`, sortable: true },
+  { name: 'genero', align: 'center', label: 'Genero', field: row => row.producto.genero, format: val => `${val}`, sortable: true },
+  { name: 'descripcion', align: 'center', label: 'Descripción', field: 'descripcion', sortable: true },
+  { name: 'precio_compra', align: 'center', label: 'Precio Compra', field: row => row.producto.precio_compra, format: val => `${val}`, sortable: true },
+  { name: 'precio_venta', align: 'center', label: 'Precio Venta', field: row => row.producto.precio_venta, format: val => `${val}`, sortable: true },
   { name: 'color', align: 'center', label: 'Color', field: 'color', sortable: true },
   { name: 'cantidad', align: 'center', label: 'Cantidad', field: 'cantidad', sortable: true }
 ]
@@ -104,12 +114,16 @@ export default defineComponent({
       categorias: ref([]),
       marcas: ref([]),
       productos: ref([]),
+      materiales: ref([]),
+      generos: ref([]),
       colores: ref([])
     })
     const catalogosTmp = reactive({
       categorias: ref([]),
       marcas: ref([]),
       productos: ref([]),
+      materiales: ref([]),
+      generos: ref([]),
       colores: ref([])
     })
     const loading = ref(true)
@@ -119,10 +133,32 @@ export default defineComponent({
       columns,
       rows,
       loading,
+      cargarNombre (catalogo, id) {
+        if (catalogosTmp[catalogo].length > 0) {
+          console.log(catalogo, id)
+          id = !!id && typeof id === 'object' ? id.id : id
+          const nombre = catalogosTmp[catalogo].find(v => v.id === id)
+          if (nombre) return nombre.nombre
+          return 'no encontrado'
+        }
+        return 'cargando ...'
+      },
+      filterFnMaterial (val, update, abort) {
+        update(() => {
+          const needle = val.toLowerCase()
+          catalogos.materiales = catalogosTmp.materiales.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
+        })
+      },
       filterFnColor (val, update, abort) {
         update(() => {
           const needle = val.toLowerCase()
           catalogos.colores = catalogosTmp.colores.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
+        })
+      },
+      filterFnGenero (val, update, abort) {
+        update(() => {
+          const needle = val.toLowerCase()
+          catalogos.generos = catalogosTmp.generos.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
         })
       },
       filterFnProducto (val, update, abort) {
