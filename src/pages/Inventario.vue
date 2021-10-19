@@ -12,10 +12,10 @@
         <q-tr :props="props">
           <q-td key="id" :props="props">{{ props.row.id }}</q-td>
           <q-td key="nombre" :props="props">
-            {{ props.row.producto.nombre }}
-            <q-popup-edit v-model="props.row.producto">
+            <span style="cursor:pointer">{{ props.row.producto.nombre }} <q-tooltip>Editar producto</q-tooltip></span>
+            <q-popup-edit v-model="props.row.producto" auto-save v-slot="scope" @save="(v, iv) => { editarStock(v, iv, props.row.id, 'producto') }">
                <q-select
-                  v-model="props.row.producto"
+                  v-model="scope.value"
                   dense
                   option-label="nombre"
                   option-value="id"
@@ -27,12 +27,16 @@
                   input-debounce="0"
                   @filter="filterFnProducto"
                   behavior="menu"
+                  @keyup.enter="scope.set"
                   :rules="[ val => !!val && val !== '' || 'Escoja un producto' ]"
                 />
             </q-popup-edit>
           </q-td>
           <q-td key="categoria" :props="props">
             {{ cargarNombre('categorias',props.row.producto.genero) }}
+          </q-td>
+          <q-td key="marca" :props="props">
+            {{ cargarNombre('marcas',props.row.producto.marca) }}
           </q-td>
            <q-td key="material" :props="props">
             {{ cargarNombre('materiales',props.row.producto.material) }}
@@ -70,9 +74,9 @@
             </q-popup-edit>
           </q-td>
           <q-td key="cantidad" :props="props">
-            {{ props.row.cantidad }}
-            <q-popup-edit v-model="props.row.cantidad">
-              <q-input v-model="props.row.cantidad" dense autofocus counter />
+            <span style="cursor:pointer">{{ props.row.cantidad }} <q-tooltip>Editar cantidad</q-tooltip></span>
+            <q-popup-edit v-model="props.row.cantidad" auto-save v-slot="scope" @save="(v, iv) => { editarStock(v, iv, props.row.id, 'cantidad') }">
+              <q-input type="number" v-model="scope.value" dense @keyup.enter="scope.set"/>
             </q-popup-edit>
           </q-td>
         </q-tr>
@@ -97,6 +101,7 @@ const columns = [
     sortable: true
   },
   { name: 'categoria', align: 'center', label: 'Categoria', field: row => row.producto.categoria, format: val => `${val}`, sortable: true },
+  { name: 'marca', align: 'center', label: 'Marca', field: row => row.producto.marca, format: val => `${val}`, sortable: true },
   { name: 'material', align: 'center', label: 'Material', field: row => row.producto.categoria, format: val => `${val}`, sortable: true },
   { name: 'genero', align: 'center', label: 'Genero', field: row => row.producto.genero, format: val => `${val}`, sortable: true },
   { name: 'descripcion', align: 'center', label: 'Descripción', field: 'descripcion', sortable: true },
@@ -133,9 +138,15 @@ export default defineComponent({
       columns,
       rows,
       loading,
+      async editarStock (value, initialValue, id, campo) {
+        const data = {}
+        data[campo] = value
+        await api.put('stocks/' + id, data)
+        loading.value = false
+        return true
+      },
       cargarNombre (catalogo, id) {
         if (catalogosTmp[catalogo].length > 0) {
-          console.log(catalogo, id)
           id = !!id && typeof id === 'object' ? id.id : id
           const nombre = catalogosTmp[catalogo].find(v => v.id === id)
           if (nombre) return nombre.nombre
