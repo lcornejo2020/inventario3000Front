@@ -7,26 +7,93 @@
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <q-card class="bg-teal-8 text-white">
+      <q-card class="bg-teal-8 text-white" style="min-width: 800px !important;">
         <q-bar>
           <q-space />
-
           <q-btn dense flat icon="minimize" @click="maximizedToggle = false" :disable="!maximizedToggle">
-            <q-tooltip v-if="maximizedToggle" class="bg-white text-primary">Minimize</q-tooltip>
+            <q-tooltip v-if="maximizedToggle" class="bg-white text-teal-8">Minimize</q-tooltip>
           </q-btn>
           <q-btn dense flat icon="crop_square" @click="maximizedToggle = true" :disable="maximizedToggle">
-            <q-tooltip v-if="!maximizedToggle" class="bg-white text-primary">Maximize</q-tooltip>
+            <q-tooltip v-if="!maximizedToggle" class="bg-white text-teal-8">Maximize</q-tooltip>
           </q-btn>
-          <q-btn dense flat icon="close" v-close-popup>
-            <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+          <q-btn dense flat icon="close" v-close-popup @click="data.producto = null">
+            <q-tooltip class="bg-white text-teal-8">Close</q-tooltip>
           </q-btn>
         </q-bar>
-
-        <q-card-section>
+        <q-card-section class="q-py-sm">
           <div class="text-h6">Crear Nuevo Stock</div>
         </q-card-section>
-        <q-card-section class="q-pt-none">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum repellendus sit voluptate voluptas eveniet porro. Rerum blanditiis perferendis totam, ea at omnis vel numquam exercitationem aut, natus minima, porro labore.
+        <q-card-section class="q-pt-none bg-white" style="border-radius: 25px 25px 0px 0px;">
+            <q-select
+              v-model="data.producto"
+              option-label="nombre"
+              option-value="id"
+              :options="catalogos.productos"
+              label="Producto"
+              use-input
+              hide-selected
+              fill-input
+              input-debounce="10"
+              @filter="filterFnProducto"
+              behavior="menu"
+              :rules="[ val => !!val && val !== '' || 'Escoja un producto' ]"
+            />
+            <q-select
+              v-model="data.color"
+              option-label="nombre"
+              option-value="id"
+              :options="catalogos.colores"
+              label="Color"
+              use-input
+              hide-selected
+              fill-input
+              input-debounce="10"
+              @filter="filterFnColor"
+              behavior="menu"
+              :rules="[ val => !!val && val !== '' || 'Escoja un color' ]"
+            />
+            <q-input type="number" label="Cantidad" v-model="data.cantidad" :rules="[ val => !!val && val !== '' && val > 0 || 'Ingrese valores mayor a 0' ]"/>
+            <q-separator inset />
+            <div class="text-subtitle1 text-dark q-py-md" v-if="!!data.producto">Descripción del producto</div>
+            <div class="row q-col-gutter-md" v-if="!!data.producto">
+              <q-field class="col" label="Categoria" stack-label>
+                <template v-slot:control>
+                  <div class="self-center full-width no-outline" tabindex="0">{{cargarNombre('categorias',data.producto.categoria) }}</div>
+                </template>
+              </q-field>
+              <q-field class="col" label="Marca" stack-label>
+                <template v-slot:control>
+                  <div class="self-center full-width no-outline" tabindex="0">{{cargarNombre('marcas',data.producto.marca) }}</div>
+                </template>
+              </q-field>
+              <q-field class="col" label="Material" stack-label>
+                <template v-slot:control>
+                  <div class="self-center full-width no-outline" tabindex="0">{{cargarNombre('materiales',data.producto.material) }}</div>
+                </template>
+              </q-field>
+            </div>
+            <div class="row q-col-gutter-md" v-if="!!data.producto">
+              <q-field class="col-2" label="Genero" stack-label>
+                <template v-slot:control>
+                  <div class="self-center full-width no-outline" tabindex="0">{{cargarNombre('generos',data.producto.genero) }}</div>
+                </template>
+              </q-field>
+              <q-field class="col-6" label="Descripción" stack-label>
+                <template v-slot:control>
+                  <div class="self-center full-width no-outline" tabindex="0">{{data.producto.descripcion}}</div>
+                </template>
+              </q-field>
+              <q-field class="col-2" label="Precio Compra" stack-label>
+                <template v-slot:control>
+                  <div class="self-center full-width no-outline" tabindex="0">$ {{data.producto.precio_compra}}</div>
+                </template>
+              </q-field>
+              <q-field class="col-2" label="Precio Venta" stack-label>
+                <template v-slot:control>
+                  <div class="self-center full-width no-outline" tabindex="0">$ {{data.producto.precio_venta}}</div>
+                </template>
+              </q-field>
+            </div>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -73,7 +140,7 @@
             </q-popup-edit>
           </q-td>
           <q-td key="categoria" :props="props">
-            {{ cargarNombre('categorias',props.row.producto.genero) }}
+            {{ cargarNombre('categorias',props.row.producto.categoria) }}
           </q-td>
           <q-td key="marca" :props="props">
             {{ cargarNombre('marcas',props.row.producto.marca) }}
@@ -181,7 +248,20 @@ export default defineComponent({
     const loading = ref(true)
     const errorCatidad = ref(false)
     const errorMensajeCantidad = ref('')
+    const data = reactive({
+      producto: null,
+      categoria: null,
+      marca: null,
+      material: null,
+      genero: null,
+      descripcion: null,
+      precio_compra: null,
+      precio_venta: null,
+      color: null,
+      cantidad: null
+    })
     return {
+      data,
       $q,
       catalogos,
       catalogosTmp,
@@ -278,6 +358,12 @@ export default defineComponent({
         update(() => {
           const needle = val.toLowerCase()
           catalogos.productos = catalogosTmp.productos.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
+        })
+      },
+      filterFnCategoria (val, update, abort) {
+        update(() => {
+          const needle = val.toLowerCase()
+          catalogos.categorias = catalogosTmp.categorias.filter(v => v.nombre.toLowerCase().indexOf(needle) > -1)
         })
       },
       async getStock () {
