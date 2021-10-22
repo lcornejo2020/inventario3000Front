@@ -16,7 +16,7 @@
           <q-btn dense flat icon="crop_square" @click="maximizedToggle = true" :disable="maximizedToggle">
             <q-tooltip v-if="!maximizedToggle" class="bg-white text-teal-8">Maximize</q-tooltip>
           </q-btn>
-          <q-btn dense flat icon="close" v-close-popup @click="data.producto = null">
+          <q-btn dense flat icon="close" v-close-popup @click="reset">
             <q-tooltip class="bg-white text-teal-8">Close</q-tooltip>
           </q-btn>
         </q-bar>
@@ -24,6 +24,11 @@
           <div class="text-h6">Crear Nuevo Stock</div>
         </q-card-section>
         <q-card-section class="q-pt-none bg-white" style="border-radius: 25px 25px 0px 0px;">
+          <q-form
+            @submit="onSubmit"
+              ref="myForm"
+              class="q-gutter-xs"
+          >
             <q-select
               v-model="data.producto"
               option-label="nombre"
@@ -94,6 +99,10 @@
                 </template>
               </q-field>
             </div>
+            <div class="text-center q-mt-lg">
+              <q-btn label="Guardar" icon="save" type="submit" color="teal-8"/>
+            </div>
+            </q-form>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -198,7 +207,7 @@
 <script>
 import { defineComponent, ref, reactive } from 'vue'
 import { api } from '../boot/axios'
-import { useQuasar } from 'quasar'
+import { useQuasar, QSpinnerGears } from 'quasar'
 
 const columns = [
   { name: 'id', align: 'center', label: 'Id', field: 'id', sortable: true },
@@ -227,7 +236,7 @@ export default defineComponent({
   name: 'PageIndex',
   setup () {
     const rows = ref([])
-    const $q = useQuasar()
+    const quasar = useQuasar()
     const filter = ref('')
     const catalogos = reactive({
       categorias: ref([]),
@@ -247,22 +256,22 @@ export default defineComponent({
     })
     const loading = ref(true)
     const errorCatidad = ref(false)
+    const dialog = ref(false)
     const errorMensajeCantidad = ref('')
     const data = reactive({
       producto: null,
-      categoria: null,
-      marca: null,
-      material: null,
-      genero: null,
-      descripcion: null,
-      precio_compra: null,
-      precio_venta: null,
       color: null,
       cantidad: null
     })
+    function reset () {
+      data.producto = null
+      data.color = null
+      data.cantidad = null
+    }
     return {
+      reset,
       data,
-      $q,
+      quasar,
       catalogos,
       catalogosTmp,
       columns,
@@ -271,8 +280,34 @@ export default defineComponent({
       loading,
       errorCatidad,
       errorMensajeCantidad,
-      dialog: ref(false),
+      dialog,
       maximizedToggle: ref(true),
+      async onSubmit () {
+        quasar.loading.show({
+          spinner: QSpinnerGears,
+          spinnerColor: 'white',
+          spinnerSize: 140,
+          message: 'Guardando Stock ...'
+        })
+        try {
+          const send = {
+            producto: data.producto.id,
+            color: data.color.id,
+            cantidad: data.cantidad
+          }
+          const res = await api.post('stocks', send)
+          rows.value.unshift(res.data)
+          reset()
+          dialog.value = false
+        } catch (e) {
+          console.log(e)
+          quasar.notify({
+            type: 'negative',
+            message: "Opps :'( ... Error en el servidor"
+          })
+        }
+        quasar.loading.hide()
+      },
       validacionCantidad (val) {
         if (val < 0 || val === '') {
           errorCatidad.value = true
@@ -284,8 +319,7 @@ export default defineComponent({
         return true
       },
       eliminar (item) {
-        console.log(item)
-        $q.dialog({
+        quasar.dialog({
           title: 'Atención',
           message: 'Esta seguro de eliminar el producto ' + item.producto.nombre + ' ?',
           ok: {
@@ -300,11 +334,12 @@ export default defineComponent({
         }).onOk(async () => {
           try {
             loading.value = true
-            await api.delete('stocks/' + item.producto.id)
-            const index = rows.value.findIndex(v => v.id === item.producto.id)
+            await api.delete('stocks/' + item.id)
+            const index = rows.value.findIndex(v => v.id === item.id)
             rows.value.splice(index, 1)
           } catch (e) {
-            $q.notify({
+            console.log(e)
+            quasar.notify({
               type: 'negative',
               message: "Opps :'( ... Error en el servidor"
             })
@@ -319,7 +354,8 @@ export default defineComponent({
         try {
           await api.put('stocks/' + id, data)
         } catch (e) {
-          $q.notify({
+          console.log(e)
+          quasar.notify({
             type: 'negative',
             message: "Opps :'( ... Error en el servidor"
           })
@@ -370,12 +406,14 @@ export default defineComponent({
         try {
           const res = await api.get('stocks', {
             params: {
-              estado: true
+              estado: true,
+              _sort: 'id:DESC'
             }
           })
           rows.value = res.data
         } catch (e) {
-          $q.notify({
+          console.log(e)
+          quasar.notify({
             type: 'negative',
             message: "Opps :'( ... Error en el servidor"
           })
@@ -393,7 +431,8 @@ export default defineComponent({
             })
             catalogos[key] = catalogosTmp[key] = res.data
           } catch (e) {
-            $q.notify({
+            console.log(e)
+            quasar.notify({
               type: 'negative',
               message: "Opps :'( ... Error en el servidor"
             })
